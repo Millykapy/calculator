@@ -16,6 +16,14 @@
           </td>
         </tr>
         <tr>
+          <td class="operatorButton" onclick="digitBtnPressed('.')">.</td>
+          <td class="operatorButton" onclick="operatorBtnPressed('sqrt')">
+            √x
+          </td>
+          <td class="operatorButton" onclick="operatorBtnPressed('2^')">2^</td>
+          <td class="operatorButton" onclick="operatorBtnPressed('3^')">3^</td>
+        </tr>
+        <tr>
           <td class="digitButton" onclick="digitBtnPressed(7)">7</td>
           <td class="digitButton" onclick="digitBtnPressed(8)">8</td>
           <td class="digitButton" onclick="digitBtnPressed(9)">9</td>
@@ -48,35 +56,64 @@
       </table>
     </section>
     <script>
-      var newLine = "true";
-      var value1;
-      var currentOperator;
+      let newLine = true;
+      let value1 = 0;
+      let currentOperator = "";
 
-      // handler when the digital button is pressed
       function digitBtnPressed(button) {
-        if (newLine) {
-          document.getElementById("inputBox").value = button;
+        const inputBox = document.getElementById("inputBox");
+
+        if (newLine || inputBox.value === "0") {
+          // If new line, just start with the digit (but allow "0.")
+          inputBox.value = button === "." ? "0." : button;
           newLine = false;
         } else {
-          var currentValue = document.getElementById("inputBox").value;
-          document.getElementById("inputBox").value = currentValue + button;
+          // Prevent multiple decimals
+          if (button === "." && inputBox.value.includes(".")) return;
+
+          inputBox.value += button;
         }
       }
-      //handler when the AC button is pressed
+
       function btnACPressed() {
-        document.getElementById("inputBox").value = 0;
+        document.getElementById("inputBox").value = "0";
+        value1 = 0;
+        currentOperator = "";
         newLine = true;
       }
+
       function operatorBtnPressed(operator) {
+        const inputValue = parseFloat(
+          document.getElementById("inputBox").value
+        );
         currentOperator = operator;
-        value1 = parseInt(document.getElementById("inputBox").value);
-        newLine = true;
-        // handler when the operator button is pressed
+
+        // Immediate calculation for single-input functions
+        if (operator === "sqrt" || operator === "2^" || operator === "3^") {
+          let result;
+          switch (operator) {
+            case "sqrt":
+              result = inputValue >= 0 ? Math.sqrt(inputValue) : "Error";
+              break;
+            case "2^":
+              result = Math.pow(2, inputValue);
+              break;
+            case "3^":
+              result = Math.pow(3, inputValue);
+              break;
+          }
+          document.getElementById("inputBox").value = result;
+          newLine = true;
+        } else {
+          value1 = inputValue;
+          newLine = true;
+        }
       }
-      //handler for equal button
+
       function equalbtnPressed() {
-        var value2 = parseInt(document.getElementById("inputBox").value);
-        var finalTotal;
+        const inputBox = document.getElementById("inputBox");
+        const value2 = parseFloat(inputBox.value);
+        let finalTotal;
 
         switch (currentOperator) {
           case "+":
@@ -86,7 +123,7 @@
             finalTotal = value1 - value2;
             break;
           case "/":
-            finalTotal = value1 / value2;
+            finalTotal = value2 !== 0 ? value1 / value2 : "Error";
             break;
           case "x":
             finalTotal = value1 * value2;
@@ -94,10 +131,15 @@
           case "%":
             finalTotal = value1 % value2;
             break;
+
+          default:
+            finalTotal = value2;
         }
-        document.getElementById("inputBox").value = finalTotal;
-        value1 = 0;
+
+        inputBox.value = finalTotal;
         newLine = true;
+        currentOperator = "";
+        value1 = 0;
       }
     </script>
   </body>
